@@ -1,10 +1,33 @@
 package fr.nemoisbae.realtimecodebarreader
 
+import android.os.Build
+import android.os.VibrationEffect
 import android.os.Vibrator
 
-class VibratorManager {
-companion object {
+class VibratorManager (
+    private val vibrator: Vibrator
+) {
 
+    private val TAG = "VibratorManager"
 
-}
+    companion object {
+        val TOUCH_VIBRATION_DURATION_IN_MS: Long = 50
+    }
+
+    fun makeOneShotVibration(vibrationDurationInMs: Long) {
+        try {
+            if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                vibrator.vibrate(
+                    VibrationEffect.createOneShot(
+                        vibrationDurationInMs,
+                        VibrationEffect.DEFAULT_AMPLITUDE
+                    )
+                )
+                return
+            }
+            vibrator.vibrate(vibrationDurationInMs)
+        } catch (exception: Exception) {
+
+        }
+    }
 }

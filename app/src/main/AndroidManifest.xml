@@ -3,10 +3,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="fr.nemoisbae.realtimecodebarreader">
 
-    <uses-feature android:name="android.hardware.camera" />
+    <uses-sdk tools:overrideLibrary="com.google.zxing.client.android" />
+
+    <uses-feature android:name="android.hardware.camera" android:required="true"/>
+
+    <uses-feature android:name="android.hardware.nfc" android:required="true" />
+
     <uses-permission android:name="android.permission.CAMERA" />
 
-    <uses-sdk tools:overrideLibrary="com.google.zxing.client.android"/>
+    <uses-permission android:name="android.permission.NFC" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:allowBackup="true"
@@ -16,12 +22,22 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".nfcActivity">
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+                <action android:name="android.nfc.action.TECH_DISCOVERED" />
+                <action android:name="android.nfc.action.TAG_DISCOVERED" />
 
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".scanActivity" />
 
         <meta-data
             android:name="com.google.android.gms.vision.DEPENDENCIES"
             android:value="barcode" />
-
 
         <activity android:name=".MainActivity">
             <intent-filter>
