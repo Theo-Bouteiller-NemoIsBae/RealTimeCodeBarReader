@@ -8,12 +8,19 @@ android {
 
     defaultConfig {
         applicationId "fr.nemoisbae.realtimecodebarreader"
-        minSdkVersion 15
-        targetSdkVersion 29
+        minSdkVersion defaultMinSdkVersion
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
+        vectorDrawables.useSupportLibrary = true
+
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     buildTypes {
@@ -37,6 +44,10 @@ dependencies {
 
     // GOOGLE VISION (use full for scan code bar)
     implementation 'com.google.android.gms:play-services-vision:19.0.0'
+
+    // zxing android (downgrade to 3.3.0 because sdk min is 19)
+    implementation('com.journeyapps:zxing-android-embedded:4.1.0') { transitive = false }
+    implementation 'com.google.zxing:core:3.3.0'
 
     // RxKotlin
     implementation 'io.reactivex.rxjava2:rxkotlin:2.4.0'

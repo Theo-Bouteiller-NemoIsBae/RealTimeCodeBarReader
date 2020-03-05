@@ -1,26 +1,15 @@
 package fr.nemoisbae.realtimecodebarreader
 
-import android.content.Context
-import android.content.pm.PackageManager
-import android.graphics.ImageFormat
-import android.graphics.SurfaceTexture
-import android.hardware.Camera
-import android.hardware.camera2.CameraCharacteristics
-import android.hardware.camera2.CameraDevice
-import android.hardware.camera2.CameraManager
-import android.hardware.camera2.params.StreamConfigurationMap
-
-import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
-import android.util.Size
-import android.view.SurfaceHolder
-import android.view.SurfaceView
-import android.view.TextureView
+import android.view.ViewGroup
 import android.widget.Button
-import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import com.journeyapps.barcodescanner.CaptureManager
+import com.journeyapps.barcodescanner.DecoratedBarcodeView
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 /**
  *
@@ -31,91 +20,82 @@ import androidx.core.app.ActivityCompat
  */
 class MainActivity : AppCompatActivity() {
 
-    val CAMERA_REQUEST_CODE: Int = 42
+    private var root: ViewGroup? = null
 
-    var camera: Camera? = null
+    private var captureManager: CaptureManager? = null
 
-    var surfaceHolder: SurfaceHolder? = null
+    private val CODE: String = "27WCUZ3PYOC433"
 
-    val surfaceHolderCallback: SurfaceHolder.Callback = object : SurfaceHolder.Callback {
-
-        override fun surfaceCreated(holder: SurfaceHolder?) {
-            camera = openCamera()
-
-            camera?.let {
-                Log.w("TRUC", "CAM CREE")
-                val parameters: Camera.Parameters = it.parameters
-//                parameters.setPreviewFpsRange(10, 60)
-                parameters.focusMode = Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE
-
-                it.setDisplayOrientation(90)
-                it.parameters = parameters
-                if (null != surfaceHolder) {
-                    it.setPreviewDisplay(surfaceHolder!!)
-                }
-
-                it.startPreview()
-            }
-        }
-
-        override fun surfaceChanged(holder: SurfaceHolder?, format: Int, width: Int, height: Int) {}
-
-        override fun surfaceDestroyed(holder: SurfaceHolder?) {}
-    }
+    private var nbrGoodTry: Int = 0
+    private var nbrTry: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
-        surfaceHolder = findViewById<SurfaceView>(R.id.cameraWrapperSurfaceView)?.holder
+        root = this.layoutInflater.inflate(R.layout.activity_main, null, false) as ViewGroup
 
-        findViewById<Button>(R.id.closeButton)?.let {
-            if (null != camera) {
-                camera!!.stopPreview()
-            }
-        }
+        setContentView(root)
+
+        if (null != root) {
+
+            root!!.findViewById<DecoratedBarcodeView>(R.id.barcodeView)?.let { decoratedBarcodeView ->
+                captureManager = CaptureManager(this, decoratedBarcodeView)
+
+                if (null != captureManager) {
+                    captureManager!!.initializeFromIntent(intent, savedInstanceState)
+
+                    processScan(decoratedBarcodeView)
 
 
-        if (null != surfaceHolder) {
-            askPermission()
-        }
-    }
-
-    private fun openCamera(): Camera? {
-        return try {
-            Camera.open()
-        } catch (exception: Exception) {
-            null
-        }
-    }
-
-    private fun askPermission() {
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.CAMERA), CAMERA_REQUEST_CODE)
-        } else {
-            surfaceHolder?.let {
-                it.addCallback(surfaceHolderCallback)
-                it.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS)
-            }
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        if (CAMERA_REQUEST_CODE == requestCode) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                surfaceHolder?.let {
-                    it.addCallback(surfaceHolderCallback)
-                    it.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS)
+                    root!!.findViewById<ImageView>(R.id.takePictureImageView)?.setOnClickListener {
+                        processScan(decoratedBarcodeView)
+                    }
                 }
-            } else {
-                askPermission()
+
             }
         }
+    }
+
+    private fun processScan(decoratedBarcodeView: DecoratedBarcodeView) {
+
+        root!!.findViewById<TextView>(R.id.resultScan)?.let { textView ->
+            textView.text = "scan"
+            decoratedBarcodeView.decodeSingle {
+                nbrTry += 1
+
+                if (CODE == it.text) {
+                    nbrGoodTry += 1
+                }
+
+
+                val average: Double = nbrGoodTry.toDouble() / nbrTry.toDouble()
+                textView.text = "Result ${it.result.text} FormatName: ${it.barcodeFormat.name} "
+
+
+
+                root!!.findViewById<TextView>(R.id.statScan)?.text = "Accuracy : ${BigDecimal((average * 100)).setScale(
+                    2,
+                    RoundingMode.HALF_EVEN
+                )}% " +
+                        "Good try : $nbrGoodTry " +
+                        "Bad try : ${nbrTry - nbrGoodTry} " +
+                        "Total ty : $nbrTry"
+            }
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        captureManager?.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        captureManager?.onResume()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        captureManager?.onDestroy()
     }
 }
