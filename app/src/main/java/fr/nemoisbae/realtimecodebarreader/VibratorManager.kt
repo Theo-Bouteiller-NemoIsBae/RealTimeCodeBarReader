@@ -11,7 +11,7 @@ class VibratorManager (
     private val TAG = "VibratorManager"
 
     companion object {
-        val TOUCH_VIBRATION_DURATION_IN_MS: Long = 50
+        val TOUCH_VIBRATION_DURATION_IN_MS: Long = 65
     }
 
     fun makeOneShotVibration(vibrationDurationInMs: Long) {

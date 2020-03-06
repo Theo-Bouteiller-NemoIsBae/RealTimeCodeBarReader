@@ -25,5 +25,9 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.nfc_button)?.setOnClickListener {
             this.startActivity(Intent(this, nfcActivity::class.java))
         }
+
+        findViewById<Button>(R.id.figer_print_button)?.setOnClickListener {
+            this.startActivity(Intent(this, FigerPrintActivity::class.java))
+        }
     }
 }

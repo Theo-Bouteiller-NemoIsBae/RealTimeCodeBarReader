@@ -1,14 +1,18 @@
 package fr.nemoisbae.realtimecodebarreader
 
 import android.content.Context
+import android.graphics.Camera
+import android.graphics.drawable.Drawable
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Vibrator
+import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
+import android.widget.*
 import com.journeyapps.barcodescanner.CaptureManager
 import com.journeyapps.barcodescanner.DecoratedBarcodeView
+import com.journeyapps.barcodescanner.camera.CameraSettings
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -16,11 +20,6 @@ class scanActivity : AppCompatActivity() {
     private var root: ViewGroup? = null
 
     private var captureManager: CaptureManager? = null
-
-    private val CODE: String = "27WCUZ3PYOC433"
-
-    private var nbrGoodTry: Int = 0
-    private var nbrTry: Int = 0
 
     private var vibratorManager: VibratorManager? = null
 
@@ -36,6 +35,24 @@ class scanActivity : AppCompatActivity() {
         if (null != root) {
 
             root!!.findViewById<DecoratedBarcodeView>(R.id.barcodeView)?.let { decoratedBarcodeView ->
+                val cameraSettings: CameraSettings = CameraSettings()
+                cameraSettings.isMeteringEnabled = true
+                cameraSettings.isContinuousFocusEnabled = true
+
+                decoratedBarcodeView.cameraSettings = cameraSettings
+
+                root!!.findViewById<ImageView>(R.id.flashImageViewOn)?.setOnClickListener {
+                    decoratedBarcodeView.setTorchOff()
+                    root!!.findViewById<ImageView>(R.id.flashImageViewOff)?.visibility = View.VISIBLE
+                    it.visibility = View.GONE
+                }
+
+                root!!.findViewById<ImageView>(R.id.flashImageViewOff)?.setOnClickListener {
+                    decoratedBarcodeView.setTorchOn()
+                    root!!.findViewById<ImageView>(R.id.flashImageViewOn)?.visibility = View.VISIBLE
+                    it.visibility = View.GONE
+                }
+
                 captureManager = CaptureManager(this, decoratedBarcodeView)
 
                 if (null != captureManager) {
@@ -43,9 +60,11 @@ class scanActivity : AppCompatActivity() {
 
                     processScan(decoratedBarcodeView)
 
-
-                    root!!.findViewById<ImageView>(R.id.takePictureImageView)?.setOnClickListener {
-                        processScan(decoratedBarcodeView)
+                    root!!.findViewById<ImageView>(R.id.takePictureImageView)?.let {
+                        it.visibility = View.INVISIBLE
+                        it.setOnClickListener {
+                            processScan(decoratedBarcodeView)
+                        }
                     }
                 }
 
@@ -53,32 +72,30 @@ class scanActivity : AppCompatActivity() {
         }
     }
 
+    private fun getSafeDrawable(id: Int): Drawable? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            this.getDrawable(R.drawable.ic_flash_on_black_24dp)
+        } else {
+            this.resources.getDrawable(R.drawable.ic_flash_on_black_24dp)
+        }
+    }
+
     private fun processScan(decoratedBarcodeView: DecoratedBarcodeView) {
+        decoratedBarcodeView.decodeContinuous {
 
-        root!!.findViewById<TextView>(R.id.resultScan)?.let { textView ->
-            textView.text = "scan"
-            decoratedBarcodeView.decodeSingle {
+            decoratedBarcodeView.pause()
 
-                vibratorManager?.makeOneShotVibration(VibratorManager.TOUCH_VIBRATION_DURATION_IN_MS)
+            vibratorManager?.makeOneShotVibration(VibratorManager.TOUCH_VIBRATION_DURATION_IN_MS)
 
-                nbrTry += 1
-
-                if (CODE == it.text) {
-                    nbrGoodTry += 1
-                }
-
-
-                val average: Double = nbrGoodTry.toDouble() / nbrTry.toDouble()
-                textView.text = "Result ${it.result.text} FormatName: ${it.barcodeFormat.name} "
-
-
-
-                root!!.findViewById<TextView>(R.id.statScan)?.text =
-                    "Accuracy : ${BigDecimal((average * 100)).setScale(2, RoundingMode.HALF_EVEN)}% " +
-                            "Good try : $nbrGoodTry " +
-                            "Bad try : ${nbrTry - nbrGoodTry} " +
-                            "Total ty : $nbrTry"
+            root!!.findViewById<LinearLayout>(R.id.resultPopup)?.visibility = View.VISIBLE
+            root!!.findViewById<Button>(R.id.closePopUp)?.setOnClickListener {
+                root!!.findViewById<LinearLayout>(R.id.resultPopup)?.visibility = View.GONE
+                decoratedBarcodeView.resume()
             }
+
+            root!!.findViewById<TextView>(R.id.resultScan)?.text =
+                "Result ${it.result.text} FormatName: ${it.barcodeFormat.name}"
+
         }
     }
 
