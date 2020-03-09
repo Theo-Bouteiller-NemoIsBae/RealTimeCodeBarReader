@@ -1,4 +1,4 @@
-package fr.nemoisbae.realtimecodebarreader
+package fr.nemoisbae.realtimecodebarreader.nfc
 
 import android.app.Activity
 import android.app.PendingIntent
@@ -16,6 +16,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import fr.nemoisbae.realtimecodebarreader.R
 import java.io.IOException
 import java.util.*
 

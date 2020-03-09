@@ -2,15 +2,11 @@ package fr.nemoisbae.realtimecodebarreader
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.ViewGroup
 import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.journeyapps.barcodescanner.CaptureManager
-import com.journeyapps.barcodescanner.DecoratedBarcodeView
-import java.math.BigDecimal
-import java.math.RoundingMode
+import fr.nemoisbae.realtimecodebarreader.fingerprint.FigerPrintActivity
+import fr.nemoisbae.realtimecodebarreader.nfc.nfcActivity
+import fr.nemoisbae.realtimecodebarreader.scan.scanActivity
 
 class MainActivity : AppCompatActivity() {
 

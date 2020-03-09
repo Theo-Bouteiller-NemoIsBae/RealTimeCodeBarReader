@@ -25,8 +25,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".FigerPrintActivity"></activity>
-        <activity android:name=".nfcActivity">
+        <activity android:name=".fingerprint.FigerPrintActivity"></activity>
+        <activity android:name=".nfc.nfcActivity">
             <intent-filter>
                 <action android:name="android.nfc.action.NDEF_DISCOVERED" />
 
@@ -45,7 +45,7 @@
                 android:name="android.nfc.action.TECH_DISCOVERED"
                 android:resource="@xml/nfc_tech_filter" />
         </activity>
-        <activity android:name=".scanActivity" />
+        <activity android:name=".scan.scanActivity" />
 
         <meta-data
             android:name="com.google.android.gms.vision.DEPENDENCIES"

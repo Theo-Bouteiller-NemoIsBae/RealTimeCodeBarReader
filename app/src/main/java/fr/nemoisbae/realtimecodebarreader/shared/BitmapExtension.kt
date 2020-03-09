@@ -1,4 +1,4 @@
-package fr.nemoisbae.realtimecodebarreader
+package fr.nemoisbae.realtimecodebarreader.shared
 
 import android.graphics.Bitmap
 import android.graphics.Matrix

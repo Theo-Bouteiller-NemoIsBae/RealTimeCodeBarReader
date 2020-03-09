@@ -1,7 +1,6 @@
-package fr.nemoisbae.realtimecodebarreader
+package fr.nemoisbae.realtimecodebarreader.scan
 
 import android.content.Context
-import android.graphics.Camera
 import android.graphics.drawable.Drawable
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
@@ -13,8 +12,14 @@ import android.widget.*
 import com.journeyapps.barcodescanner.CaptureManager
 import com.journeyapps.barcodescanner.DecoratedBarcodeView
 import com.journeyapps.barcodescanner.camera.CameraSettings
-import java.math.BigDecimal
-import java.math.RoundingMode
+import fr.nemoisbae.realtimecodebarreader.R
+import fr.nemoisbae.realtimecodebarreader.shared.VibratorManager
+
+/**
+ *
+ * http://www.gomaro.ch/codeean.htm
+ *
+ */
 
 class scanActivity : AppCompatActivity() {
     private var root: ViewGroup? = null
@@ -30,7 +35,10 @@ class scanActivity : AppCompatActivity() {
 
         setContentView(root)
 
-        vibratorManager = VibratorManager(getSystemService(Context.VIBRATOR_SERVICE) as Vibrator)
+        vibratorManager =
+            VibratorManager(
+                getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            )
 
         if (null != root) {
 

@@ -1,4 +1,4 @@
-package fr.nemoisbae.realtimecodebarreader
+package fr.nemoisbae.realtimecodebarreader.shared
 
 import android.os.Build
 import android.os.VibrationEffect
