@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import fr.nemoisbae.realtimecodebarreader.fingerprint.FigerPrintActivity
+import fr.nemoisbae.realtimecodebarreader.model.ModelActivity
 import fr.nemoisbae.realtimecodebarreader.nfc.nfcActivity
 import fr.nemoisbae.realtimecodebarreader.scan.scanActivity
 
@@ -24,6 +25,10 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.figer_print_button)?.setOnClickListener {
             this.startActivity(Intent(this, FigerPrintActivity::class.java))
+        }
+
+        findViewById<Button>(R.id.modelButton)?.setOnClickListener {
+            this.startActivity(Intent(this, ModelActivity::class.java))
         }
     }
 }
