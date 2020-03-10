@@ -9,10 +9,10 @@
     android:padding="15dp">
 
     <fr.nemoisbae.realtimecodebarreader.shared.view.PatternView
-        android:layout_width="200dp"
-        android:layout_height="200dp"
         android:id="@+id/PatternView"
-        android:background="@color/colorBackBareCode"/>
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:background="@color/colorBackBareCode" />
 
 <!--    <LinearLayout-->
 <!--        android:id="@+id/gameWrapper"-->

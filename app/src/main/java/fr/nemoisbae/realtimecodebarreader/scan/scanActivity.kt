@@ -6,6 +6,7 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Vibrator
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
@@ -91,18 +92,25 @@ class scanActivity : AppCompatActivity() {
     private fun processScan(decoratedBarcodeView: DecoratedBarcodeView) {
         decoratedBarcodeView.decodeContinuous {
 
-            decoratedBarcodeView.pause()
+            Log.w("BarCode", "Test : ${it.result.text}")
 
-            vibratorManager?.makeOneShotVibration(VibratorManager.TOUCH_VIBRATION_DURATION_IN_MS)
-
-            root!!.findViewById<LinearLayout>(R.id.resultPopup)?.visibility = View.VISIBLE
-            root!!.findViewById<Button>(R.id.closePopUp)?.setOnClickListener {
-                root!!.findViewById<LinearLayout>(R.id.resultPopup)?.visibility = View.GONE
-                decoratedBarcodeView.resume()
-            }
-
-            root!!.findViewById<TextView>(R.id.resultScan)?.text =
-                "Result ${it.result.text} FormatName: ${it.barcodeFormat.name}"
+//            decoratedBarcodeView.pause()
+//
+//            vibratorManager?.makeOneShotVibration(VibratorManager.TOUCH_VIBRATION_DURATION_IN_MS)
+//
+//            root!!.findViewById<LinearLayout>(R.id.resultPopup)?.visibility = View.VISIBLE
+//            root!!.findViewById<Button>(R.id.closePopUp)?.setOnClickListener {
+//                root!!.findViewById<LinearLayout>(R.id.resultPopup)?.visibility = View.GONE
+//                decoratedBarcodeView.resume()
+//            }
+//
+//            root!!.findViewById<TextView>(R.id.resultScan)?.text = "Result ${it.result.text} FormatName: ${it.barcodeFormat.name}"
+//
+//            if (BarCodeManager.isValidEan13(it.result.text)) {
+//                Log.w("barcode", "Its work")
+//            } else {
+//                Log.w("barcode", "Its not work")
+//            }
 
         }
     }

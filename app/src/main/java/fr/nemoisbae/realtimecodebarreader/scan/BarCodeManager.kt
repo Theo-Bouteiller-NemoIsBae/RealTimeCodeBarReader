@@ -1,14 +1,20 @@
 package fr.nemoisbae.realtimecodebarreader.scan
 
+import android.util.Log
+
 class BarCodeManager {
     companion object {
 
-        fun checkEan13(ean13Code: String) {
+        fun isValidEan13(ean13Code: String): Boolean {
 
-            var barCode: ArrayList<Int> = ArrayList()
+            val barCode: ArrayList<Int> = ArrayList()
 
             for (i: Int in 0..ean13Code.length - 2) {
-                barCode.add(ean13Code[i].toInt())
+                barCode.add(Character.getNumericValue(ean13Code[i]))
+            }
+
+            for (current: Int in barCode) {
+                Log.w("barCode", current.toString())
             }
 
             var isMultiplication: Boolean = false
@@ -22,13 +28,30 @@ class BarCodeManager {
                     current
                 }
 
-                isMultiplication != isMultiplication
+                isMultiplication = !isMultiplication
             }
 
-            var dividingRest: Int = 0
-            var dividingResult: Int = 0
+            val dividingRest: Int = sumBarCode % 10
+            val dividingResult: Int = sumBarCode / 10
 
+            Log.w("barCode", "Dividing Rest = $dividingRest")
+
+            val checkSum: Int = 10 - dividingRest
+
+            var calculatedBarCode: String = ""
+            for (current: Int in barCode) {
+                calculatedBarCode += current.toString()
+            }
+
+            calculatedBarCode += checkSum.toString()
+
+            Log.w("barCode", "Calculated barcode: $calculatedBarCode")
+
+            if (ean13Code == calculatedBarCode) {
+                return true
+            }
+
+            return false
         }
-
     }
 }
