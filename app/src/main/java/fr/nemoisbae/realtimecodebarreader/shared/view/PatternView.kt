@@ -1,8 +1,8 @@
 package fr.nemoisbae.realtimecodebarreader.shared.view
 
+import android.content.ComponentCallbacks
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Paint
+import android.graphics.*
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
@@ -15,16 +15,44 @@ class PatternView (
     attributeSet: AttributeSet?
 ): View (context, attributeSet) {
 
-    private val RADIUS: Float = 100f
+    private val RADIUS: Float = 70f
+    private val SIZE: Float = 70f
 
-    private val circles: ArrayList<Circle> = arrayListOf()
+    private val LINE_WIDTH: Float = 25f
+
+
+    private var callback: ((Boolean)->(Unit))? = null
+    private var pattern: ArrayList<Int> = arrayListOf()
+
+    private var circles: ArrayList<Circle>? = null
 
     private val paintCircleSelected: Paint = Paint()
     private val paintCircleUnSelected: Paint = Paint()
+    private val paintLine: Paint = Paint()
+
+    private var viewPastInOrder: ArrayList<Circle> = arrayListOf()
+
+    private var lineX: Float? = null
+    private var lineY: Float? = null
 
     init {
         paintCircleSelected.color = context.getColorSafe(R.color.colorAccent) ?: 0
+        paintCircleSelected.isAntiAlias = true
+
         paintCircleUnSelected.color = context.getColorSafe(R.color.colorDotBareCode) ?: 0
+        paintCircleUnSelected.isAntiAlias = true
+
+        paintLine.color = context.getColorSafe(R.color.colorLinePattern) ?: 0
+        paintLine.isAntiAlias = true
+        paintLine.strokeWidth = LINE_WIDTH
+    }
+
+    fun setOnResultListener(callback: (Boolean)->(Unit)) {
+        this.callback = callback
+    }
+
+    fun setPattern(pattern: ArrayList<Int>) {
+        this.pattern = pattern
     }
 
     override fun onDraw(canvas: Canvas?) {
@@ -34,52 +62,57 @@ class PatternView (
             return
         }
 
-        initCircles(width = width.toFloat(), height = height.toFloat())
-
-        for (circle: Circle in circles) {
-            canvas.drawCircle(circle.cX, circle.cY, circle.radius, circle.paint)
+        for (i: Int in 0 until viewPastInOrder.size) {
+            if (viewPastInOrder.size > i + 1) {
+                canvas.drawLine(viewPastInOrder[i].cX, viewPastInOrder[i].cY, viewPastInOrder[i + 1].cX, viewPastInOrder[i + 1].cY, paintLine)
+            }
         }
 
+        if (null != lineX && null != lineY && viewPastInOrder.isNotEmpty()) {
+            viewPastInOrder[viewPastInOrder.size - 1]?.let {
+                canvas.drawLine(it.cX, it.cY, lineX!!, lineY!!, paintLine)
+            }
+        }
 
-//        canvas.drawCircle(
-//            spacingWidth + (RADIUS / 2),
-//            spacingHeight + (RADIUS / 2),
-//            RADIUS,
-//            paintCircle
-//        )
-//        canvas.drawCircle(
-//            spacingWidth + RADIUS + spacingWidth + (RADIUS / 2),
-//            spacingHeight + RADIUS + spacingHeight + (RADIUS / 2),
-//            RADIUS,
-//            paintCircle
-//        )
-//        canvas.drawCircle(
-//            spacingWidth + RADIUS + spacingWidth + RADIUS + spacingWidth + (RADIUS / 2),
-//            spacingHeight + RADIUS + spacingHeight + RADIUS + spacingHeight + (RADIUS / 2),
-//            RADIUS,
-//            paintCircle
-//        )
+        if (null == circles) {
+            initCircles(width = width.toFloat(), height = height.toFloat())
+        }
 
-
-        Log.w("TEST", "Size : ${this.width} x ${this.height}")
+        if (null != circles) {
+            for (circle: Circle in circles!!) {
+                canvas.drawCircle(circle.cX, circle.cY, circle.radius, circle.paint)
+            }
+        }
 
         super.onDraw(canvas)
     }
 
     private fun initCircles(width: Float, height: Float) {
+
+        if (null == circles) {
+           circles = arrayListOf()
+        }
+
         val spacingWidth: Float = (width - (RADIUS * 3f)) / 4f
         val spacingHeight: Float = (height - (RADIUS * 3f)) / 4f
 
-        for (y: Int in 1..3) {
-            for (x:Int in 1..3) {
-                circles.add(
-                    Circle(
-                        cX = (RADIUS * (x - 1)) + (spacingWidth * x) + (RADIUS / 2),
-                        cY = (RADIUS * (y - 1)) + (spacingHeight * y) + (RADIUS / 2),
-                        radius = RADIUS,
-                        paint = paintCircleSelected
+
+        var number: Int = 0
+
+        if (null != circles) {
+            for (y: Int in 1..3) {
+                for (x: Int in 1..3) {
+                    number += 1
+                    circles!!.add(
+                        Circle(
+                            cX = (RADIUS * (x - 1)) + (spacingWidth * x) + (RADIUS / 2),
+                            cY = (RADIUS * (y - 1)) + (spacingHeight * y) + (RADIUS / 2),
+                            radius = RADIUS,
+                            paint = paintCircleUnSelected,
+                            number = number
+                        )
                     )
-                )
+                }
             }
         }
     }
@@ -91,71 +124,138 @@ class PatternView (
         }
 
         when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                viewPastInOrder = arrayListOf()
+            }
+
             MotionEvent.ACTION_MOVE -> {
-                val x: Float = event.rawX
-                val y: Float = event.rawY
 
-                if (isFingerInView(x, y)) {
-                    Log.w("PatternView", "Touch : $x ; $y")
+                val pos: IntArray = IntArray(2)
+                this.getLocationOnScreen(pos)
 
-                    circles.forEach { circle: Circle ->
-                        circle.paint = if (isFingerInCircle(x, y, circle)) {
-                            paintCircleSelected
-                        } else {
-                            paintCircleUnSelected
+                val x: Float = event.rawX - pos[0].toFloat()
+                val y: Float = event.rawY - pos[1].toFloat()
+
+                if (null != circles && isFingerInView(event.rawX, event.rawY, pos[0].toFloat(), pos[1].toFloat())) {
+                    lineX = x
+                    lineY = y
+
+                    circles!!.forEach { circle: Circle ->
+                        if (!isAlreadyOnArrayList(circle)) {
+                            if (isFingerInCircle(
+                                    x,
+                                    y,
+                                    pos[0].toFloat(),
+                                    pos[1].toFloat(),
+                                    circle
+                                )
+                            ) {
+                                circle.paint = paintCircleSelected
+                                viewPastInOrder.add(circle)
+                            } else {
+                                circle.paint = paintCircleUnSelected
+                            }
                         }
                     }
+                    this.invalidate()
+                }
+            }
+
+            MotionEvent.ACTION_UP -> {
+                lineX = null
+                lineY = null
+
+                if (null != callback) {
+                    callback!!(isMatching())
                 }
             }
         }
 
-
-
         return true
     }
 
-    private fun isFingerInView(x: Float, y: Float): Boolean {
-        if (x < this.x) {
+    private fun isMatching(): Boolean {
+        if (pattern.isEmpty() || viewPastInOrder.isEmpty()) {
             return false
         }
 
-        if (this.x + this.width < x) {
+        if (viewPastInOrder.size != pattern.size) {
             return false
         }
 
-        if (y < this.y) {
-            return false
-        }
-
-        if (this.y + this.height < y) {
-            return false
+        for (i: Int in 0 until viewPastInOrder.size) {
+            if (pattern[i] != viewPastInOrder[i].number) {
+                return false
+            }
         }
 
         return true
     }
 
-    private fun isFingerInCircle(x: Float, y: Float, circle: Circle): Boolean {
-        if (x < circle.cX - (circle.radius / 2)) {
-            Log.w("Colide", "Not in circle")
+    private fun isFingerInView(fingerX: Float, fingerY: Float, viewX: Float, viewY: Float): Boolean {
+        if (fingerX < viewX) {
             return false
         }
 
-        if (circle.cX + (circle.radius / 2) < x) {
-            Log.w("Colide", "Not in circle")
+        if (viewX + this.width < fingerX) {
             return false
         }
 
-        if (y < circle.cY - (circle.radius / 2)) {
-            Log.w("Colide", "Not in circle")
+        if (fingerY < viewY) {
             return false
         }
 
-        if (circle.cY + (circle.radius / 2) < y) {
-            Log.w("Colide", "Not in circle")
+        if (viewY + this.height < fingerY) {
             return false
         }
 
-        Log.w("Colide", "In circle")
         return true
     }
+
+    private fun isFingerInCircle(fingerX: Float, fingerY: Float, viewX: Float, viewY: Float, circle: Circle): Boolean {
+        if (fingerX < circle.cX - (circle.radius)) {
+            return false
+        }
+
+        if (circle.cX + (circle.radius) < fingerX) {
+            return false
+        }
+
+        if (fingerY < circle.cY - (circle.radius)) {
+            return false
+        }
+
+        if (circle.cY + (circle.radius) < fingerY) {
+            return false
+        }
+
+//        if (fingerX < (viewX + circle.cX) - (circle.radius)) {
+//            return false
+//        }
+//
+//        if (viewX + circle.cX + (circle.radius) < fingerX) {
+//            return false
+//        }
+//
+//        if (fingerY < (viewY + circle.cY) - (circle.radius)) {
+//            return false
+//        }
+//
+//        if (viewY + circle.cY + (circle.radius) < fingerY) {
+//            return false
+//        }
+
+        return true
+    }
+
+    private fun isAlreadyOnArrayList(circle: Circle): Boolean {
+        viewPastInOrder.forEach {
+            if (circle.number == it.number) {
+                return true
+            }
+        }
+
+        return false
+    }
+
 }

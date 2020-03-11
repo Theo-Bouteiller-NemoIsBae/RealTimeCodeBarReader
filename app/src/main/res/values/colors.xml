@@ -6,6 +6,8 @@
     <color name="colorBackground">#FFFF</color>
     <color name="colorPopUpBack">#BFBFBF</color>
 
+    <color name="colorLinePattern">#870083</color>
+
     <color name="colorLineBareCode">#BF0D00</color>
     <color name="colorDotBareCode">#8A2102</color>
     <color name="colorBackBareCode">#B3000000</color>

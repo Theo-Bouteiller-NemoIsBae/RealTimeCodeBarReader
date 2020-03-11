@@ -9,12 +9,21 @@
     android:padding="15dp">
 
     <fr.nemoisbae.realtimecodebarreader.shared.view.PatternView
-        android:id="@+id/PatternView"
+        android:id="@+id/patternView"
         android:layout_width="match_parent"
         android:layout_height="400dp"
         android:background="@color/colorBackBareCode" />
 
-<!--    <LinearLayout-->
+    <TextView
+        android:id="@+id/resultPatternTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/patternView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="50dp"
+        android:text="TextView" />
+
+    <!--    <LinearLayout-->
 <!--        android:id="@+id/gameWrapper"-->
 <!--        android:layout_centerVertical="true"-->
 <!--        android:layout_centerHorizontal="true"-->
