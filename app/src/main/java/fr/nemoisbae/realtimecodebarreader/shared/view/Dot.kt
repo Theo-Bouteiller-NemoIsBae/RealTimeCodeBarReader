@@ -7,6 +7,6 @@ data class Dot (
     val y: Float,
     val width: Float,
     val height: Float,
-    var drawable: Int,
+    var drawable: Drawable,
     val number: Int
 )

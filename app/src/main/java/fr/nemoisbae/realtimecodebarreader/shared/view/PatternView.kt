@@ -3,12 +3,18 @@ package fr.nemoisbae.realtimecodebarreader.shared.view
 import android.content.ComponentCallbacks
 import android.content.Context
 import android.graphics.*
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.ShapeDrawable
+import android.graphics.drawable.shapes.OvalShape
+import android.os.Build
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import androidx.annotation.RequiresApi
 import fr.nemoisbae.realtimecodebarreader.R
 import fr.nemoisbae.realtimecodebarreader.shared.getColorSafe
+import fr.nemoisbae.realtimecodebarreader.shared.getDrawableSafe
 
 class PatternView (
     context: Context,
@@ -16,9 +22,13 @@ class PatternView (
 ): View (context, attributeSet) {
 
     private val RADIUS: Float = 70f
+
     private val SIZE: Float = 70f
 
     private val LINE_WIDTH: Float = 25f
+
+    private var drawableSelected: Drawable? = null
+    private var drawableUnSelected: Drawable? = null
 
 
     private var callback: ((Boolean)->(Unit))? = null
@@ -45,6 +55,9 @@ class PatternView (
         paintLine.color = context.getColorSafe(R.color.colorLinePattern) ?: 0
         paintLine.isAntiAlias = true
         paintLine.strokeWidth = LINE_WIDTH
+
+        drawableSelected = this.context.getDrawableSafe(R.drawable.dot_selected)
+        drawableUnSelected = this.context.getDrawableSafe(R.drawable.dot_unselected)
     }
 
     fun setOnResultListener(callback: (Boolean)->(Unit)) {
@@ -58,7 +71,6 @@ class PatternView (
     override fun onDraw(canvas: Canvas?) {
 
         if (null == canvas) {
-
             return
         }
 
@@ -69,7 +81,7 @@ class PatternView (
         }
 
         if (null != lineX && null != lineY && viewPastInOrder.isNotEmpty()) {
-            viewPastInOrder[viewPastInOrder.size - 1]?.let {
+            viewPastInOrder[viewPastInOrder.size - 1].let {
                 canvas.drawLine(it.cX, it.cY, lineX!!, lineY!!, paintLine)
             }
         }
